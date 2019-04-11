@@ -1,0 +1,19 @@
+color:
+  blue:
+    min: !!python/tuple [100, 0, 0]
+    max: !!python/tuple [179,255, 45]
+  red:
+    min:
+    max:
+  green:
+    min:
+    max:
+shape:
+  triangle: 3
+  square: 4
+  pentagon: 5
+  hexagon: 6
+  septagon: 7
+  octagon: 8
+min_contour_area: 30
+bound_percentage: 0.05
