@@ -1,7 +1,13 @@
+#!/usr/bin/env python
+"""Find shapes and colors using HSV."""
+__author__ = "Anas Abou Allaban"
+__maintainer__ = "Anas Abou Allaban"
+__email__ = "anas@abouallaban.info"
+
 import cv2
-import numpy as np
 import yaml
 import time
+
 
 class ShapeColor:
     
@@ -51,7 +57,8 @@ class ShapeColor:
                 epsilon = self.boundPercentage * cv2.arcLength(cnt, True)
                 approx = cv2.approxPolyDP(cnt, epsilon, True)
                 numEdges = len(approx)
-                # If we have 4 edges, check if its a rectangle or square. Otherwise process normally
+                # If we have 4 edges, check if its a rectangle or square.
+                # Otherwise process normally.
                 if numEdges == 4:
                     objectFound = True if self._recOrSq(approx) == self.shape[shape] else False
                 elif numEdges == self.shape[shape]:
@@ -76,3 +83,8 @@ class ShapeColor:
                 break
         cv2.destroyAllWindows()
         camera.stop()
+
+
+if __name__ == '__main__':
+    sc = ShapeColor()
+    sc.start()

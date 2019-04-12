@@ -1,7 +1,12 @@
+#!/usr/bin/env python
+"""Simple example for shape detection. Default usage is with the Raspberry Pi camera."""
+__author__ = "Anas Abou Allaban"
+__maintainer__ = "Anas Abou Allaban"
+__email__ = "anas@abouallaban.info"
+
 import cv2
 import imutils
 from imutils.video import VideoStream
-import numpy as np
 import time
 
 # Start video stream

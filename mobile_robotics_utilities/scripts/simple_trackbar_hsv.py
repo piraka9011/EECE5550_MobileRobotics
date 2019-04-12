@@ -1,3 +1,9 @@
+#!/usr/bin/env python
+"""Simple example for using trackbars. Segments image color based on HSV."""
+__author__ = "Anas Abou Allaban"
+__maintainer__ = "Anas Abou Allaban"
+__email__ = "anas@abouallaban.info"
+
 import cv2
 import numpy as np
 import time
@@ -77,7 +83,6 @@ def findSquares(cameraFeed):
 
 
 def detect(contour):
-    shape = 'Unknown'
     epsilon = 0.05 * cv2.arcLength(contour, True)
     approx = cv2.approxPolyDP(contour, epsilon, True)
     if len(approx) == 3:
@@ -129,7 +134,8 @@ def redShapeDetect(cameraFeed):
 
 def greenShapeDetect(cameraFeed):
     threshold = cv2.inRange(cameraFeed, GREEN_HSV_MIN, GREEN_HSV_MAX)
-    res, contours, hierarchy = cv2.findContours(threshold, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+    res, contours, hierarchy = cv2.findContours(threshold, cv2.RETR_LIST,
+                                                cv2.CHAIN_APPROX_SIMPLE)
     for cnt in contours:
         M = cv2.moments(cnt)
         if M['m00'] and cv2.contourArea(cnt) > 30:
@@ -137,14 +143,17 @@ def greenShapeDetect(cameraFeed):
             cY = int(M['m01'] / M['m00'])
             shape = detect(cnt)
             cv2.drawContours(cameraFeed, [cnt], -1, (0, 255, 0), 2)
-            cv2.putText(cameraFeed, shape, (cX, cY), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 2)
+            cv2.putText(cameraFeed, shape, (cX, cY), cv2.FONT_HERSHEY_SIMPLEX,
+                        0.5, (255, 0, 0), 2)
             cv2.namedWindow('Red')
             cv2.imshow('Red', cameraFeed)
             cv2.moveWindow('Red', 550, 550)
 
+
 def trackFilteredObject(x, y, threshold, cameraFeed):
     # Find the contours in the image
-    res, contours, hierarchy = cv2.findContours(threshold, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_SIMPLE)
+    res, contours, hierarchy = cv2.findContours(threshold, cv2.RETR_CCOMP,
+                                                cv2.CHAIN_APPROX_SIMPLE)
     objectFound = False
     refArea = 0
     if len(hierarchy) > 0:
@@ -181,9 +190,12 @@ def main():
     time.sleep(1)
     while True:
         ret, frame = picam.read()
-        H_MIN = cv2.getTrackbarPos('H_MIN', trackbarWindowName); H_MAX = cv2.getTrackbarPos('H_MAX', trackbarWindowName)
-        S_MIN = cv2.getTrackbarPos('S_MIN', trackbarWindowName); S_MAX = cv2.getTrackbarPos('S_MAX', trackbarWindowName)
-        V_MIN = cv2.getTrackbarPos('V_MIN', trackbarWindowName); V_MAX = cv2.getTrackbarPos('V_MAX', trackbarWindowName)
+        H_MIN = cv2.getTrackbarPos('H_MIN', trackbarWindowName)
+        H_MAX = cv2.getTrackbarPos('H_MAX', trackbarWindowName)
+        S_MIN = cv2.getTrackbarPos('S_MIN', trackbarWindowName)
+        S_MAX = cv2.getTrackbarPos('S_MAX', trackbarWindowName)
+        V_MIN = cv2.getTrackbarPos('V_MIN', trackbarWindowName)
+        V_MAX = cv2.getTrackbarPos('V_MAX', trackbarWindowName)
         threshold = cv2.inRange(frame, (H_MIN, S_MIN, V_MIN), (H_MAX, S_MAX, V_MAX))
         mask = cv2.bitwise_and(frame, frame, mask=threshold)
         if useMorphOps:

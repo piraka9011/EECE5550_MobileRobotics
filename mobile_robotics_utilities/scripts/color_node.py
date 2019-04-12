@@ -1,9 +1,20 @@
 #!/usr/bin/python
+"""Segment an image from a ROS topic based on LaB color scheme.
 
+Requires OpenCV3.
+"""
+__author__ = "Anas Abou Allaban"
+__maintainer__ = "Anas Abou Allaban"
+__email__ = "anas@abouallaban.info"
+
+# ROS
 import rospy
 import cv2
 from collections import OrderedDict
 from cv_bridge import CvBridge, CvBridgeError
+from sensor_msgs.msg import Image
+
+# Sys
 import numpy as np
 from math import sqrt, pow
 
@@ -15,7 +26,7 @@ class ColorSegmenter:
             "red":      (255, 50, 10),
             "green":    (100, 255, 50),
             "blue":     (100, 120, 255),
-            #"yellow":   (255, 255, 0),
+            "yellow":   (255, 255, 0),
             "black":    (0, 0, 0)})
 
         self.lab = np.zeros((len(colors), 1, 3), dtype="uint8")
@@ -29,7 +40,7 @@ class ColorSegmenter:
         self.lab = cv2.cvtColor(self.lab, cv2.COLOR_RGB2LAB)
 
     def euclidean(self, x, y):
-        # Use .tolist() or .astype(np.int64)
+        # Use .tolist() or .astype(np.int64), otherwise overflow error
         x = x.tolist()
         y = y.tolist()
         return sqrt(pow(x[0] - y[0], 2) + pow(x[1] - y[1], 2) + pow(x[2] - y[2], 2))
@@ -64,19 +75,22 @@ class ColorSegmenter:
         # How much of a difference between means before considered accurate enough
         epsilon = 0.0001
         # Either epsilon or iterations reached
-        criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, max_iterations, epsilon)
+        criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER,
+                    max_iterations,
+                    epsilon)
         # Apply KMeans
-        ret, labels, centers = cv2.kmeans(k_img, num_colors, None, criteria, attempts, flags)
+        ret, labels, centers = cv2.kmeans(k_img, num_colors, None, criteria,
+                                          attempts, flags)
         return ret, labels, centers
 
 
-class TableSegmenter:
+class SegmentImageRos:
     def __init__(self, debug=False):
         # CHANGE THE IMAGE TOPIC HERE
         image_topic = '/camera/color/image_raw'
-        self.img_sub = rospy.Subscriber(image_topic, Image, self.rosImg2CvImg)
+        self.img_sub = rospy.Subscriber(image_topic, Image, self._image_callback)
 
-        self.bridge = CvBridge()s
+        self.bridge = CvBridge()
         self._cv_img = None
         self.color_segmenter = ColorSegmenter()
 
@@ -84,13 +98,12 @@ class TableSegmenter:
 
         self.colors_found = []
 
-
-    def rosImg2CvImg(self, rosImage):
+    def _image_callback(self, ros_img):
         # Convert the ROS Image msg to OpenCV format (Numpy array)
         try:
-            self._cv_img = self.bridge.imgmsg_to_cv2(rosImage, 'bgr8')
-        except CvBridge_segmentatorError as e:
-            print(e)
+            self._cv_img = self.bridge.imgmsg_to_cv2(ros_img, 'bgr8')
+        except CvBridgeError as e:
+            rospy.logwarn("CVBridgeError Exception!\n{}".format(e))
 
     def getColorsFound(self):
         return self.colors_found
@@ -106,6 +119,7 @@ class TableSegmenter:
             labeled_color = 'black'
             # Iterate over all colors found
             for center in centers:
+                # Conver to LaB
                 lab = cv2.cvtColor(np.uint8([[center]]), cv2.COLOR_BGR2LAB)
                 labeled_color = self.color_segmenter.getColorLabel(lab)
                 # We don't want black...
@@ -117,11 +131,13 @@ class TableSegmenter:
             """ Debug Display """
             if self.debug:
                 # Display side by side
-                w, h = cv_img.shape[:2]
+                w, h = self._cv_img.shape[:2]
                 rgb_color = np.zeros((w, h, 3), np.uint8)
-                r = dominant_color[0][0][0]; g = dominant_color[0][0][1]; b = dominant_color[0][0][2]
+                r = dominant_color[0][0][0]
+                g = dominant_color[0][0][1]
+                b = dominant_color[0][0][2]
                 rgb_color[:] = (r, g, b)
-                vis = np.concatenate((cv_img, rgb_color), axis=1)
+                vis = np.concatenate((self._cv_img, rgb_color), axis=1)
                 # Window
                 cv2.imshow(labeled_color, vis)
                 if cv2.waitKey(0) & 0xFF == ord('q'):
@@ -130,7 +146,7 @@ class TableSegmenter:
     
 if __name__ == '__main__':
     rospy.init_node('color_segmentation')
-    t = TableSegmenter(True)
+    t = SegmentImageRos(True)
     t.start()
     colors = t.getColorsFound()
     num_red = colors.count('red')

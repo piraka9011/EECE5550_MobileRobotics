@@ -2,7 +2,7 @@
 
 import rospy
 import actionlib
-from move_base.msgs import MoveBaseAction, MoveBaseGoal
+from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
 from tf.transformations import quaternion_from_euler, euler_from_quaternion
 
 if __name__ == '__main__':
@@ -16,8 +16,8 @@ if __name__ == '__main__':
     # Create the goal
     # YOU FILL THESE
     target_goal = MoveBaseGoal()
-    target_goal.header.frame_id = 'map'
-    target_goal.header.stamp = rospy.Time.now()
+    target_goal.target_pose.header.frame_id = 'map'
+    target_goal.target_pose.header.stamp = rospy.Time.now()
     # Position has XYZ
     # target_goal.pose.position.x = 0.0
     # target_goal.pose.position.y = 0.0

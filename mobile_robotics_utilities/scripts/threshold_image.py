@@ -1,5 +1,12 @@
+#!/usr/bin/env python
+"""Apply a threshold to an image for background subtraction."""
+__author__ = "Anas Abou Allaban"
+__maintainer__ = "Anas Abou Allaban"
+__email__ = "anas@abouallaban.info"
+
 import cv2
 import numpy as np
+
 
 def printImage(image):
     cv2.imshow('Test', image)
